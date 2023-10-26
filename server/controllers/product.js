@@ -129,8 +129,9 @@ const updateProduct = async (req, res, next) => {
       });
     }
 
-    req.body.images = allImage;
     //we changed the images in req.body
+    req.body.images = allImage;
+    req.body.user = req.user.id;
 
     const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
       new: true,
