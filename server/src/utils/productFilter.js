@@ -1,11 +1,18 @@
 class ProductFilter {
   //query for allProducts queryStr for keyword
+
+   //filter operations
+  //http://localhost:5000/products?keyword="foo"
+  // query for all products queryStr for query parameters
+
   constructor(query, queryStr) {
     this.query = query;
     this.queryStr = queryStr;
   }
-
+// create a search method
   search() {
+    // keywords can include limit, keyword, page
+    // if there is a keyword filter according to name  due to keyword 
     const keyword = this.queryStr.keyword
       ? {
           name: {
@@ -14,7 +21,7 @@ class ProductFilter {
           },
         }
       : {};
-
+    
     this.query = this.query.find({ ...keyword });
     return this;
   }
@@ -24,7 +31,7 @@ class ProductFilter {
     const deleteArea = ["keyword", "limit", "page"];
 
     deleteArea.forEach((item) => delete queryCopy[item]);
-    const queryStr = JSON.stringify(queryCopy);
+    let queryStr = JSON.stringify(queryCopy);
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (key) => `$${key}`);
     this.query = this.query.find(JSON.parse(queryStr));
     return this;

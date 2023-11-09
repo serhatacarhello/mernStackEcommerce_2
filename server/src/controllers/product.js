@@ -1,4 +1,8 @@
 import Product from "../models/product.js";
+import {
+  generateFakeProducts,
+  saveFakeProductsToDatabase,
+} from "../utils/fakeProducts.js";
 import ProductFilter from "../utils/productFilter.js";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -7,17 +11,16 @@ const allProducts = async (req, res) => {
   //http://localhost:5000/products?keyword="foo"
 
   try {
-    const resultPerPage = 10;
-    const queryStr = req.query;
-    //query = all products
-    let query = Product.find();
+    const resultPerPage = 12;
 
-    const productFilter = new ProductFilter(query, queryStr)
+    const productFilter = new ProductFilter(Product.find(), req.query)
       .search()
       .filter()
       .pagination(resultPerPage);
 
     const products = await productFilter.query;
+
+    // const products = await Product.find();
 
     res.status(200).json(products);
   } catch (error) {
@@ -74,6 +77,15 @@ const createProduct = async (req, res, next) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// to create fake products
+
+const fakeProducts = generateFakeProducts(10);
+
+//before creating fakeProducts comment user in Product model in models/product.js
+
+// saveFakeProductsToDatabase(fakeProducts);
+console.log("app run");
 
 const deleteProduct = async (req, res, next) => {
   try {

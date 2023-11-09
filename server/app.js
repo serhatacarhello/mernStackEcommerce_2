@@ -4,9 +4,9 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import db from "./config/db.js";
-import productRoutes from "./routes/product.js";
-import userRoutes from "./routes/user.js";
+import db from "./src/config/db.js";
+import productRoutes from "./src/routes/product.js";
+import userRoutes from "./src/routes/user.js";
 import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
@@ -16,6 +16,7 @@ cloudinary.config({
   api_key: process.env.CLOUD_API_KEY,
   api_secret: process.env.CLOUD_API_SECRET,
 });
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json({ limit: "30mb", extended: true }));

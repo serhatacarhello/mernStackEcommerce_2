@@ -1,22 +1,25 @@
-
 ## server
 
 add package.json
+
 ```
 cd server  npm init -y
 
 npm i express nodemon cookie-parser body-parser validator cors nodemailer bcryptjs jsonwebtoken dotenv mongoose cloudinary
 ```
+
 add app.js
 
 create server with express.js
+
 ```
 const express = require("express")
 ```
 
-
 ## mongo db connection
+
 +create config folder and db.js file in it
+
 ```
 
 import mongoose from "mongoose";
@@ -49,7 +52,6 @@ import db from "./config/db.js";
 db()
 ```
 
-
 ## Here's how to create a model, controller, and route structure for a "product" in an Express.js application:
 
 1.Creating the Model:
@@ -70,6 +72,7 @@ module.exports = Product;
 
 
 ```
+
 2.Creating the Controller:
 The controller is responsible for calling and directing the functions of the model. This is where you implement the business logic. For example, you can manage operations like adding, listing, updating, or deleting products. Here's an example of a product controller:
 
@@ -99,6 +102,7 @@ exports.getAllProducts = async (req, res) => {
 
 
 ```
+
 3.Creating the Route:
 Routes define functions that respond to specific requests (HTTP GET, POST, PUT, DELETE, etc.). Here's an example of a product route:
 
@@ -122,6 +126,7 @@ module.exports = router;
 
 4.Routing in the Main Application:
 In the main application file, you should use these routes to direct URL paths and requests. Here's an example of the main application file:
+
 ```
 const express = require('express');
 const app = express();
@@ -140,9 +145,10 @@ app.listen(port, () => {
 });
 
 ```
+
 ## Filter operations
 
-This class helps in building and modifying database queries, and it can be used to search, filter, and paginate data. 
+This class helps in building and modifying database queries, and it can be used to search, filter, and paginate data.
 
 ```
 class ProductFilter {
@@ -197,21 +203,20 @@ export default ProductFilter;
 ```
 npm install cloudinary
 ```
+
 and use it in app.js
+
 ```
 import {v2 as cloudinary} from 'cloudinary';
-          
-cloudinary.config({ 
-  cloud_name: 'asdasdasdad', 
-  api_key: '1111111111111', 
-  api_secret: '************' 
+
+cloudinary.config({
+  cloud_name: 'asdasdasdad',
+  api_key: '1111111111111',
+  api_secret: '************'
 });
 ```
 
-
 ## nodemailer use it for send email for reset password
-
-
 
 ```
 npm i nodemailer
@@ -256,8 +261,6 @@ main().catch(console.error);
 
 ```
 
-
-
 ## FRONTEND
 
 ```
@@ -273,4 +276,11 @@ npx tailwindcss init
 
 ```
 
+# Add proxy
 
+copy code and add on package.json
+
+```
+"proxy":"http://localhost:5000"
+
+```

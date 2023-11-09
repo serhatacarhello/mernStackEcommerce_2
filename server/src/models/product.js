@@ -39,6 +39,7 @@ const productSchema = new mongoose.Schema(
         },
       },
     ],
+    // comment user before creating fake products now go app.js and create fake products
     user: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
@@ -61,7 +62,5 @@ const productSchema = new mongoose.Schema(
 );
 
 const Product = mongoose.model("Product", productSchema);
-
-
 
 export default Product;

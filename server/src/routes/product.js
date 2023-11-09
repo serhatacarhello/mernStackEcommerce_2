@@ -14,6 +14,7 @@ import auth from "../middleware/auth.js";
 const router = express.Router();
 
 router.get("/products", allProducts);
+
 router.delete(
   "/admin/products",
   auth.authenticationMid,
