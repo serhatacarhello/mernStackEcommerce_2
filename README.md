@@ -284,3 +284,7 @@ copy code and add on package.json
 "proxy":"http://localhost:5000"
 
 ```
+
+## More Information
+
+To see the project live, [click here](https://mernstackecommerce2-client.onrender.com).
