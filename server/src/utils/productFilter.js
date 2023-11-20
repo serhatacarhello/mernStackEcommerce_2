@@ -1,7 +1,7 @@
 class ProductFilter {
   //query for allProducts queryStr for keyword
 
-   //filter operations
+  //filter operations
   //http://localhost:5000/products?keyword="foo"
   // query for all products queryStr for query parameters
 
@@ -9,10 +9,10 @@ class ProductFilter {
     this.query = query;
     this.queryStr = queryStr;
   }
-// create a search method
+  // create a search method
   search() {
     // keywords can include limit, keyword, page
-    // if there is a keyword filter according to name  due to keyword 
+    // if there is a keyword filter according to name  due to keyword
     const keyword = this.queryStr.keyword
       ? {
           name: {
@@ -21,7 +21,7 @@ class ProductFilter {
           },
         }
       : {};
-    
+
     this.query = this.query.find({ ...keyword });
     return this;
   }

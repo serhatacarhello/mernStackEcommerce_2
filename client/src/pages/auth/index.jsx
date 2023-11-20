@@ -1,27 +1,18 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import defaultAvatar from "../../assets/images/default-avatar.png";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  login,
-  register,
-  selectCurrentUser,
-  selectError,
-  selectIsLoggedIn,
-} from "../../redux/slices/authSlice";
+import { toast } from "react-toastify";
+import { login, register, selectError } from "../../redux/slices/authSlice";
 import { Link, useNavigate } from "react-router-dom";
 import Button from "../../components/Button";
 
 export default function Auth() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector(selectCurrentUser);
-  console.log("🚀 ~ file: index.jsx:18 ~ Auth ~ user:", user);
-  const isLoggedIn = useSelector(selectIsLoggedIn);
-  console.log("🚀 ~ file: index.jsx:20 ~ Auth ~ isLoggedIn:", isLoggedIn);
   const error = useSelector(selectError);
-  console.log("🚀 ~ file: index.jsx:22 ~ Auth ~ error:", error);
   const [signUp, setSignUp] = useState(false);
   const [preview, setPreview] = useState(defaultAvatar);
+  const [showError, setShowError] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -43,10 +34,6 @@ export default function Auth() {
     }
   }, []);
 
-  const handleNavigate = useCallback(() => {
-    navigate("/");
-  }, [navigate]);
-
   const registerFunc = async (e) => {
     e.preventDefault();
     if (formData.remember) {
@@ -58,15 +45,16 @@ export default function Auth() {
       const userData = await dispatch(
         register(formDataWithoutRemember)
       ).unwrap();
-      console.log(
-        "🚀 ~ file: index.jsx:59 ~ registerFunc ~ userData:",
-        userData
-      );
 
-      if (userData?.user) handleNavigate();
+      if (userData?.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       console.log(error, "error");
     }
+    setShowError(true);
   };
 
   const loginFunc = async (e) => {
@@ -75,13 +63,16 @@ export default function Auth() {
     const { name, remember, avatar, ...loginData } = formData;
     try {
       const userData = await dispatch(login(loginData)).unwrap();
-      console.log("🚀 ~ file: index.jsx:71 ~ loginFunc ~ userData:", userData);
-      if (userData?.user) {
-        handleNavigate();
+      console.log("🚀 ~ file: index.jsx:70 ~ loginFunc ~ userData:", userData);
+      if (userData?.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
       }
     } catch (error) {
       console.log(error, "error");
     }
+    setShowError(true);
   };
 
   function handleChange(event) {
@@ -89,7 +80,8 @@ export default function Auth() {
     if (name === "avatar" && files.length > 0) {
       const reader = new FileReader();
       reader.onload = () => {
-        // Dosyanın verisi burada reader.result olarak saklanır.
+        // The data of the file is stored here as reader.result.
+
         setFormData((prevFormData) => ({
           ...prevFormData,
           avatar: reader.result,
@@ -97,7 +89,7 @@ export default function Auth() {
         setPreview(reader.result);
       };
       reader.onerror = (error) => {
-        console.error("Dosya okuma hatası:", error);
+        toast.error("File reading error:", error);
       };
       reader.readAsDataURL(files[0]);
     } else {
@@ -108,6 +100,7 @@ export default function Auth() {
         };
       });
     }
+    setShowError(false);
   }
 
   return (
@@ -246,7 +239,7 @@ export default function Auth() {
                 )}
               </div>
               {/* error field */}
-              {error && (
+              {error && showError && (
                 <div className="flex items-center justify-center  border border-red-300 text-rose-400 h-10 rounded-md">
                   {error}
                 </div>

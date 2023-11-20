@@ -1,45 +1,107 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-
-const initialState = {
-  products: [],
-  adminProducts: [],
-  loading: false,
-  product: {},
-  error: false,
-  errorMessage: "",
-};
+import { toast } from "react-toastify";
 
 export const getProducts = createAsyncThunk(
   "product/fetchProducts",
   async (params) => {
-    // Varsayılan link değeri
     let link = `http://localhost:5000/products`;
-    // Eğer params belirtilmişse, isteği özelleştir
     if (params) {
-      const { keyword, price, rating, category } = params;
-      console.log("🚀 ~ file: productSlice.js:21 ~ rating:", rating);
+      const { keyword, limit, page } = params;
+      link = `http://localhost:5000/products?keyword=${keyword || ""}&limit=${
+        limit || 12
+      }&page=${page || 1}`;
+    }
+
+    const response = await fetch(link);
+    const data = await response.json();
+    return data;
+  }
+);
+export const getFilteredProducts = createAsyncThunk(
+  "product/fetchFilteredProducts",
+  async (params) => {
+    console.log("🚀 ~ file: productSlice.js:23 ~ arams:", params);
+    let link = `http://localhost:5000/products`;
+    if (params) {
+      const { keyword, price, rating, category, limit, page } = params;
       link = `http://localhost:5000/products?keyword=${
         keyword || ""
-      }&rating[gte]=${rating.value || 0}&price[gte]=${
-        price.min || 0
-      }&price[lte]=${price.max || 1000}`;
+      }&rating[gte]=${rating || 0}&price[gte]=${price?.min || 0}&price[lte]=${
+        price?.max || 1000
+      }&limit=${limit || 12}&page=${page || 1}`;
 
-      // Eğer params içinde category varsa, category'yi da ekleyin
       if (category) {
-        link += `&category=${category.value}`;
+        link += `&category=${category}`;
       }
     }
 
     const response = await fetch(link);
-    return await response.json();
+    const data = await response.json();
+    console.log("🚀 ~ file: productSlice.js:40 ~  data :", data);
+    return data;
   }
 );
 
 export const getAdminProducts = createAsyncThunk(
   "product/fetchAdminProducts",
   async () => {
-    const response = await fetch(`http://localhost:5000/admin/products`);
-    return await response.json();
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const response = await fetch(`http://localhost:5000/admin/products`, {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+    return data;
+  }
+);
+export const addNewAdminProduct = createAsyncThunk(
+  "product/addProduct",
+  async (newProductData) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newProductData),
+    };
+    const response = await fetch(
+      `http://localhost:5000/product/new`,
+      requestOptions
+    );
+
+    const data = await response.json();
+    console.log("🚀 ~ file: productSlice.js:76 ~ data:", data);
+    return data;
+  }
+);
+export const updateProduct = createAsyncThunk(
+  "product/updateProduct",
+  async ({ id, updatedProductData }) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const requestOptions = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updatedProductData),
+    };
+    const response = await fetch(
+      `http://localhost:5000/products/${id}`,
+      requestOptions
+    );
+
+    const data = await response.json();
+    return data;
   }
 );
 
@@ -51,6 +113,35 @@ export const getProductDetail = createAsyncThunk(
     return await response.json();
   }
 );
+
+export const deleteProduct = createAsyncThunk(
+  "product/deleteProduct",
+  // Declare the type your function argument here:
+  async (id) => {
+    const token = localStorage.getItem("token");
+    const requestOptions = {
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    };
+    const response = await fetch(
+      `http://localhost:5000/products/${id}`,
+      requestOptions
+    );
+    return await response.json();
+  }
+);
+
+const initialState = {
+  products: [],
+  filteredProducts: [],
+  adminProducts: [],
+  loading: false,
+  product: {},
+  error: false,
+  errorMessage: "",
+};
 
 export const productSlice = createSlice({
   name: "product",
@@ -64,29 +155,94 @@ export const productSlice = createSlice({
       state.loading = false;
       if (action.payload.message) {
         state.errorMessage = action.payload.message;
+      } else {
+        state.products = action.payload;
       }
-      state.products = action.payload;
     });
     builder.addCase(getProducts.rejected, (state, action) => {
       state.loading = false;
       state.error = true;
       state.errorMessage = action.error.message;
-      console.log(action);
+    });
+    builder.addCase(getFilteredProducts.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(getFilteredProducts.fulfilled, (state, action) => {
+      state.loading = false;
+      if (action.payload.message) {
+        state.errorMessage = action.payload.message;
+      } else {
+        state.filteredProducts = [];
+        state.filteredProducts = action.payload;
+      }
+    });
+    builder.addCase(getFilteredProducts.rejected, (state, action) => {
+      state.loading = false;
+      state.error = true;
+      state.errorMessage = action.error.message;
     });
     builder.addCase(getAdminProducts.pending, (state) => {
       state.loading = true;
     });
     builder.addCase(getAdminProducts.fulfilled, (state, action) => {
       state.loading = false;
-      if (action.payload.message) {
+      if (action.payload?.message) {
         state.errorMessage = action.payload.message;
+      } else {
+        state.adminProducts = action.payload;
       }
-      state.adminProducts = action.payload;
     });
     builder.addCase(getAdminProducts.rejected, (state, action) => {
       state.loading = false;
       state.error = true;
       state.errorMessage = action.error.message;
+    });
+    builder.addCase(addNewAdminProduct.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addNewAdminProduct.fulfilled, (state, action) => {
+      state.loading = false;
+      if (action.payload.message) {
+        state.errorMessage = action.payload.message;
+      } else {
+        state.adminProducts = [...state.adminProducts, action.payload];
+        state.products = [...state.products, action.payload];
+        toast.success("New product added.");
+      }
+    });
+    builder.addCase(addNewAdminProduct.rejected, (state, action) => {
+      state.loading = false;
+      state.error = true;
+      state.errorMessage = action.error.message;
+    });
+    builder.addCase(updateProduct.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateProduct.fulfilled, (state, action) => {
+      if (action.payload.message) {
+        state.errorMessage = action.payload.message;
+      } else {
+        const existingProductIndex = state.adminProducts.findIndex(
+          (product) => product.id === action.payload._id
+        );
+        if (existingProductIndex !== -1) {
+          state.adminProducts[existingProductIndex] = action.payload;
+        }
+        const productIndex = state.products.findIndex(
+          (product) => product.id === action.payload._id
+        );
+        if (productIndex !== -1) {
+          state.products[productIndex] = action.payload;
+        }
+        toast.success("Product updated.");
+      }
+      state.loading = false;
+    });
+    builder.addCase(updateProduct.rejected, (state, action) => {
+      state.loading = false;
+      state.error = true;
+      state.errorMessage = action.error.message;
+      toast.error(action.error.message);
     });
     builder.addCase(getProductDetail.pending, (state) => {
       state.loading = true;
@@ -95,13 +251,29 @@ export const productSlice = createSlice({
       state.loading = false;
       if (action.payload.message) {
         state.errorMessage = action.payload.message;
+        toast.error(action.payload.message);
+      } else {
+        state.product = action.payload;
       }
-      state.product = action.payload;
+    });
+    builder.addCase(deleteProduct.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteProduct.fulfilled, (state, action) => {
+      state.loading = false;
+      if (action.payload.message) {
+        state.errorMessage = action.payload.message;
+      }
     });
   },
 });
 
 // Action creators are generated for each case reducer function
 export const {} = productSlice.actions;
-export const selectAdminProducts = (state) => state.adminProducts;
+
 export default productSlice.reducer;
+
+export const selectAdminProducts = (state) => state.products.adminProducts;
+export const selectFilteredProducts = (state) =>
+  state.products.filteredProducts;
+export const selectProductLoading = (state) => state.products.loading;

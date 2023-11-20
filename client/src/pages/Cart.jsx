@@ -6,10 +6,6 @@ import CartItem from "../components/CardItem";
 
 function Cart() {
   const [selectedOption, setSelectedOption] = useState(10);
-  console.log(
-    "🚀 ~ file: Cart.jsx:11 ~ Cart ~ selectedOption:",
-    selectedOption
-  );
 
   const handleOptionChange = (e) => {
     setSelectedOption(e.target.value);
@@ -23,7 +19,7 @@ function Cart() {
     return acc + item.price * item.quantity;
   }, 0);
   const totalCost = totalPrice + parseInt(selectedOption);
-  console.log("🚀 ~ file: Cart.jsx:26 ~ Cart ~ totalCost:", totalCost);
+
   return (
     <>
       <div className="container mx-auto mt-10">
@@ -70,7 +66,7 @@ function Cart() {
                   to="/"
                   className="mt-4 block text-center text-blue-500 hover:text-blue-700"
                 >
-                  Continue Shopping
+                  Let's Start Shopping
                   <svg
                     className="inline-block w-4 h-4 ml-2"
                     aria-hidden="true"

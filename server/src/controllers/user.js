@@ -9,20 +9,22 @@ const register = async (req, res) => {
   const { name, email, password } = req.body;
   const isExists = await User.findOne({ email });
   if (isExists) {
-    return res
-      .status(500)
-      .json({ message: "Bu email adresi ile bir kullanıcı zaten kayıtlı." });
+    return res.status(500).json({
+      message: "A user with this email address is already registered.",
+    });
   }
+
+  // Check if the password meets the length requirement
   if (password.length < 6) {
     return res
       .status(500)
-      .json({ message: "Şifre 6 karakterden küçük olamaz." });
+      .json({ message: "Password must be at least 6 characters long." });
   }
-
+  // Validate the email format
   if (typeof email !== "string" || !isValidEmail(email)) {
     return res
       .status(500)
-      .json({ message: "Geçerli bir email adresi sağlamalısınız." });
+      .json({ message: "Please provide a valid email address." });
   }
 
   function isValidEmail(email) {
@@ -39,7 +41,6 @@ const register = async (req, res) => {
       width: 130,
       crop: "scale",
     });
-    console.log("🚀 ~ file: user.js:12 ~ register ~ avatar:", avatar);
 
     const hashed_password = await bcrypt.hash(password, 10);
 
@@ -53,7 +54,7 @@ const register = async (req, res) => {
       },
     });
 
-    const token = jwt.sign({ id: new_user._id }, "JWT_SECRET", {
+    const token = jwt.sign({ id: new_user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
     // save token to cookies
@@ -72,7 +73,9 @@ const register = async (req, res) => {
       token,
     });
   } catch (error) {
-    return res.status(500).json({ message: "Register process doesn't work" });
+    return res
+      .status(500)
+      .json({ message: "Registration process encountered an error." });
   }
 };
 const login = async (req, res) => {
@@ -81,16 +84,18 @@ const login = async (req, res) => {
   const user = await User.findOne({ email });
 
   if (!user) {
-    return res.status(500).json({ message: "Böyle bir kullanıcı bulunamadı." });
+    return res.status(500).json({ message: "User not found." });
   }
 
   const comparePassword = await bcrypt.compare(password, user.password);
 
   if (!comparePassword) {
-    return res.status(500).json({ message: "Hatalı parola girdiniz." });
+    return res.status(500).json({ message: "Incorrect password." });
   }
 
-  const token = jwt.sign({ id: user._id }, "JWT_SECRET", { expiresIn: "1d" });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
 
   const cookieOptions = {
     httpOnly: "true",
@@ -110,20 +115,20 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   const cookieOptions = {
-    httpOnly: "true",
+    httpOnly: true,
     expires: new Date(Date.now()),
   };
 
   res
     .status(200)
     .cookie("token", null, cookieOptions)
-    .json({ message: "Çıkış işlemi başarılı" });
+    .json({ message: "Logout successful." });
 };
 
 const forgotPassword = async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    return res.status(404).json({ message: "Böyle bir kullanıcı bulunamadı." });
+    return res.status(404).json({ message: "User not found." });
   }
 
   // Burada şifre sıfırlama işlemini gerçekleştirin
@@ -149,7 +154,6 @@ const forgotPassword = async (req, res) => {
   `;
   try {
     // use mailtrap
-
     var transporter = nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
       port: 2525,
@@ -158,19 +162,6 @@ const forgotPassword = async (req, res) => {
         pass: process.env.NODEMAILER_PW, // your email password
       },
     });
-
-    // without mailtrap
-
-    // const transporter = nodemailer.createTransport({
-    //   service: "gmail",
-    //   host: "smtp.gmail.com",
-    //   port: 465,
-    //   secure: true,
-    //   auth: {
-    //     user: process.env.NODEMAILER_EMAIL, //your email address
-    //     pass: process.env.NODEMAILER_PW, // your email password
-    //   },
-    // });
 
     const mailOptions = {
       from: process.env.NODEMAILER_EMAIL, //sender email address
@@ -181,7 +172,7 @@ const forgotPassword = async (req, res) => {
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: "Mailinizi kontrol ediniz." });
+    res.status(200).json({ message: "Check your email." });
   } catch (error) {
     // Eğer bir hata oluşursa hatayı yakalayın ve uygun bir yanıt döndürün.
     user.resetPasswordToken = undefined;
@@ -201,28 +192,41 @@ const resetPassword = async (req, res) => {
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
   });
+  console.log("🚀 ~ file: user.js:195 ~ resetPassword ~ user:", user);
   if (!user) {
     return res.status(500).json({
       message:
-        "Böyle bir kullanıcı bulunamadı. Lütfen kayıtlı bir e-posta adresi kullanarak yeniden deneyin.",
+        "No such user found. Please try again using a registered email address.",
     });
   }
-  // eger kullanıcı varsa şifresine gelen şifreyi atama yapıyoruz
-  user.password = req.body.password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
 
-  await user.save();
+  // Hash the new password
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-  const token = jwt.sign({ id: user._id }, "JWT_SECRET", { expiresIn: "1d" });
-  const cookieOptions = {
-    httpOnly: true,
-    expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-  };
+ // Update user information
+ user.password = hashedPassword;
+ user.resetPasswordToken = undefined;
+ user.resetPasswordExpire = undefined;
+
+   // Save the updated user
+   await user.save();
+
+   // Generate a new JWT token
+   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+     expiresIn: "1d",
+   });
+
+   // Set cookie options
+   const cookieOptions = {
+     httpOnly: true,
+     expires: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+   };
+
+  // Remove sensitive information from the user object
   const userData = user.toObject();
-
   delete userData.password;
   delete userData.__v;
+  
   res
     .status(200)
     .cookie("token", token, cookieOptions)
@@ -230,11 +234,8 @@ const resetPassword = async (req, res) => {
 };
 
 const userDetail = async (req, res, next) => {
-  console.log("🚀 ~ file: user.js:233 ~ userDetail ~ rwq.user:", req.user.id);
   try {
     const user = await User.findById(req.user.id);
-    console.log("userdetailcalistı", user);
-
     const userData = user.toObject();
 
     delete userData.password;

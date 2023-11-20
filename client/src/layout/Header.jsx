@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getKeyword } from "../redux/slices/generalSlice";
 import { logout, selectCurrentUser } from "../redux/slices/authSlice";
 import defaultAvatar from "../assets/images/default-avatar.png";
 import { selectCart } from "../redux/slices/cartSlice";
+import { toast } from "react-toastify";
 
 export default function Header() {
   const [keyword, setKeyword] = useState("");
@@ -14,24 +15,26 @@ export default function Header() {
   const cartItems = useSelector(selectCart);
 
   const menuItems = [
-    { name: "Profil", url: "/profile" },
-    { name: "Admin", url: "admin" },
+    ...(user?.role === "admin" ? [{ name: "Admin", url: "admin" }] : []),
+    { name: "Profile", url: "/profile" },
     { name: "Logout", url: "/logout" },
   ];
+
   const navItems = [
     { name: "Products", url: "/products" },
-    { name: "Admin", url: "admin" },
-    {
-      name: "Logout",
-      url: "/logout",
-    },
+    ...(user?.role === "admin" ? [{ name: "Admin", url: "admin" }] : []),
   ];
   const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const keywordFunc = () => {
     dispatch(getKeyword(keyword));
-    navigate("/products");
+    if (user?.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/products");
+    }
+
     setKeyword("");
   };
 
@@ -45,11 +48,31 @@ export default function Header() {
     }
   };
 
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest("#dropdownMenuButton2")) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isMenuOpen]);
+
+  const handleProfileBtnClick = () => {
+    if (user) {
+      setIsMenuOpen(!isMenuOpen);
+    } else {
+      navigate("/auth");
+    }
+  };
+
   const handleLogout = () => {
     dispatch(logout());
     localStorage.removeItem("token");
     navigate("/");
-    console.log("cıksş işlemi basşoraılı");
+    toast.success("You have been successfully logged out.");
   };
 
   return (
@@ -87,23 +110,23 @@ export default function Header() {
           } flex-grow basis-[100%] items-center lg:!flex lg:basis-auto`}
         >
           {/* Logo */}
-          <a
+          <Link
             className="mb-4 ml-2 mr-5 mt-3 flex items-center text-neutral-900 hover:text-neutral-900 focus:text-neutral-900 dark:text-neutral-200 dark:hover:text-neutral-400 dark:focus:text-neutral-400 lg:mb-0 lg:mt-0"
-            href="/"
+            to="/"
           >
             <img
-              src="https://tecdn.b-cdn.net/img/logo/te-transparent-noshadows.webp"
-              style={{ height: 15 }}
-              alt="TE Logo"
+              src="my_logo.png"
+              style={{ height: 25 }}
+              alt="S Logo"
               loading="lazy"
             />
-          </a>
+          </Link>
           {/* Left navigation links */}
           <ul className="list-style-none mr-auto flex flex-col pl-0 lg:flex-row">
             {navItems.map((item, i) => (
               <Link to={item.url} key={i}>
                 <li className="mb-4 lg:mb-0 lg:pr-2">
-                  <button className="text-neutral-500 transition duration-200 hover:text-neutral-700 hover:ease-in-out focus:text-neutral-700 disabled:text-black/30 motion-reduce:transition-none dark:text-neutral-200 dark:hover:text-neutral-300 dark:focus:text-neutral-300 lg:px-2 [&.active]:text-black/90 dark:[&.active]:text-zinc-400">
+                  <button className="text-xl font-semibold  text-neutral-500  transition duration-200 hover:text-neutral-700 hover:ease-in-out focus:text-neutral-700 disabled:text-black/30 motion-reduce:transition-none dark:text-neutral-200 dark:hover:text-neutral-300 dark:focus:text-neutral-300 lg:px-2 [&.active]:text-black/90 dark:[&.active]:text-zinc-400">
                     {item.name}
                   </button>
                 </li>
@@ -114,9 +137,9 @@ export default function Header() {
         {/* Collapsible navigation container finish */}
 
         {/* Right elements start */}
-        <div className="relative flex items-center flex-wrap">
+        <div className="relative flex items-center justify-start sm:justify-center flex-wrap">
           {/* search bar */}
-          <div className="hidden sm:block flex-shrink flex-grow-0 justify-center items-center px-2">
+          <div className="block flex-shrink flex-grow-0 justify-center items-center px-2">
             <div className="inline-block">
               <div className="relative inline-flex items-center max-w-full">
                 <input
@@ -126,6 +149,11 @@ export default function Header() {
                   aria-label="Search"
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      keywordFunc();
+                    }
+                  }}
                 />
               </div>
             </div>
@@ -140,7 +168,6 @@ export default function Header() {
                   viewBox="0 0 32 32"
                   xmlns="http://www.w3.org/2000/svg"
                   aria-hidden="true"
-                  role="presentation"
                   focusable="false"
                   style={{
                     display: "block",
@@ -161,50 +188,51 @@ export default function Header() {
           </div>
           {/* end search bar */}
 
-          {/* Cart Icon */}
-          <button className="mr-4 text-neutral-600 transition duration-200 hover:text-neutral-700 hover:ease-in-out focus:text-neutral-700 disabled:text-black/30 motion-reduce:transition-none dark:text-neutral-200 dark:hover:text-neutral-300 dark:focus:text-neutral-300 [&.active]:text-black/90 dark:[&.active]:text-neutral-400">
-            <div className="relative ml-3 bg-inherit">
-              <Link to={"/cart"}>
-                <span className="[&>svg]:w-5">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="h-5 w-5"
-                  >
-                    <path d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" />
-                  </svg>
+          <div className="flex justify-center items-center my-3 ">
+            {/* Cart Icon */}
+            <button className="mr-4 text-neutral-600 transition duration-200 hover:text-neutral-700 hover:ease-in-out focus:text-neutral-700 disabled:text-black/30 motion-reduce:transition-none dark:text-neutral-200 dark:hover:text-neutral-300 dark:focus:text-neutral-300 [&.active]:text-black/90 dark:[&.active]:text-neutral-400">
+              <div className="relative ml-3 bg-inherit">
+                <Link to={"/cart"}>
+                  <span className="[&>svg]:w-5">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path d="M2.25 2.25a.75.75 0 000 1.5h1.386c.17 0 .318.114.362.278l2.558 9.592a3.752 3.752 0 00-2.806 3.63c0 .414.336.75.75.75h15.75a.75.75 0 000-1.5H5.378A2.25 2.25 0 017.5 15h11.218a.75.75 0 00.674-.421 60.358 60.358 0 002.96-7.228.75.75 0 00-.525-.965A60.864 60.864 0 005.68 4.509l-.232-.867A1.875 1.875 0 003.636 2.25H2.25zM3.75 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM16.5 20.25a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" />
+                    </svg>
+                  </span>
+                </Link>
+                {/* Cart counter */}
+                <span className="absolute -mt-6 ml-1  bg-red-500 rounded-full  px-[0.35em] py-[0.15em] text-[0.6rem] font-bold leading-none text-white">
+                  {cartItems?.length > 0 ? cartItems?.length : 0}
                 </span>
-              </Link>
-              {/* Cart counter */}
-              <span className="absolute -mt-6 ml-1  bg-red-500 rounded-full  px-[0.35em] py-[0.15em] text-[0.6rem] font-bold leading-none text-white">
-                {cartItems?.length > 0 ? cartItems?.length : 0}
-              </span>
-            </div>
-          </button>
-          {/* Second dropdown container start*/}
-          <div
-            className={`relative ${isMenuOpen ? "items-start " : "items-end"}`}
-          >
-            <div className="relative">
-              {/* Second dropdown trigger */}
-              <button
-                className="hidden-arrow flex items-center whitespace-nowrap transition duration-150 ease-in-out motion-reduce:transition-none"
-                id="dropdownMenuButton2"
-                aria-expanded={isMenuOpen}
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {/* User avatar */}
-                <img
-                  src={user ? user?.avatar?.url : defaultAvatar}
-                  className="rounded-full"
-                  style={{ height: 25, width: 25 }}
-                  alt="avatar"
-                  loading="lazy"
-                />
-              </button>
-              {/* Second dropdown menu */}
-              {user ? (
+              </div>
+            </button>
+            {/* Second dropdown container start*/}
+            <div
+              className={`relative ${
+                isMenuOpen ? "items-start " : "items-end"
+              }`}
+            >
+              <div className="relative">
+                {/* Second dropdown trigger */}
+                <button
+                  className="hidden-arrow flex items-center whitespace-nowrap transition duration-150 ease-in-out motion-reduce:transition-none"
+                  id="dropdownMenuButton2"
+                  onClick={handleProfileBtnClick}
+                >
+                  {/* User avatar */}
+                  <img
+                    src={user ? user?.avatar?.url : defaultAvatar}
+                    className="rounded-full"
+                    style={{ height: 25, width: 25 }}
+                    alt="avatar"
+                    loading="lazy"
+                  />
+                </button>
+                {/* Second dropdown menu */}
                 <ul
                   className={`absolute ${
                     isMenuOpen ? "block right-0 min-w-[100px]" : "hidden"
@@ -222,10 +250,10 @@ export default function Header() {
                     </li>
                   ))}
                 </ul>
-              ) : null}
+              </div>
             </div>
+            {/* Second dropdown container finish*/}
           </div>
-          {/* Second dropdown container finish*/}
         </div>
         {/* Right elements finish */}
       </div>

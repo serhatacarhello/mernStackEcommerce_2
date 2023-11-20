@@ -11,18 +11,19 @@ export function createRandomProduct() {
     description: faker.commerce.productDescription(),
     price: faker.commerce.price(),
     stock: faker.number.int({ min: 0, max: 100 }),
+    rating: faker.number.int({ min: 0, max: 5 }),
     images: [
       {
         public_id: faker.string.uuid(),
-        url: faker.image.urlLoremFlickr({ category: "sports" }),
+        url: faker.image.urlLoremFlickr({ category: "nature" }),
       },
       {
         public_id: faker.string.uuid(),
-        url: faker.image.urlLoremFlickr({ category: "sports" }),
+        url: faker.image.urlLoremFlickr({ category: "nature" }),
       },
       {
         public_id: faker.string.uuid(),
-        url: faker.image.urlLoremFlickr({ category: "sports" }),
+        url: faker.image.urlLoremFlickr({ category: "nature" }),
       },
     ],
   };

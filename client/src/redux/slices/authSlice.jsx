@@ -6,13 +6,6 @@ import {
   isRejected,
 } from "@reduxjs/toolkit";
 
-const initialState = {
-  user: null,
-  isLoggedIn: false,
-  loading: false,
-  error: null,
-};
-
 let baseUrl = `http://localhost:5000`;
 
 export const register = createAsyncThunk("auth/register", async (data) => {
@@ -51,23 +44,14 @@ export const login = createAsyncThunk("auth/login", async (data) => {
   try {
     const response = await fetch(`${baseUrl}/login`, requestOptions);
     const jsonResponse = await response.json();
-    console.log(
-      "🚀 ~ file: authSlice.jsx:50 ~ login ~ jsonResponse:",
-      jsonResponse
-    );
+
     const token = localStorage.getItem("token");
-    console.log("🚀 ~ file: authSlice.jsx:63 ~ login ~ token:", token);
     if (jsonResponse?.token !== undefined && token !== jsonResponse?.token) {
       localStorage.setItem("token", jsonResponse?.token);
-      console.log(
-        "🚀 ~ file: authSlice.jsx:66 ~ login ~ jsonResponse?.token:",
-        jsonResponse?.token
-      );
     }
 
     return jsonResponse;
   } catch (error) {
-    console.log("error.message", error.message);
     throw error;
   }
 });
@@ -116,7 +100,6 @@ export const resetPassword = createAsyncThunk(
       );
 
       const jsonResponse = await response.json();
-      console.log("🚀 ~ file: authSlice.jsx:133 ~ jsonResponse:", jsonResponse);
 
       return jsonResponse;
     } catch (error) {
@@ -138,6 +121,13 @@ export const profile = createAsyncThunk("auth/profile", async () => {
     throw error;
   }
 });
+
+const initialState = {
+  user: null,
+  isLoggedIn: false,
+  loading: false,
+  error: null,
+};
 
 export const authSlice = createSlice({
   name: "auth",
@@ -163,7 +153,6 @@ export const authSlice = createSlice({
       .addMatcher(
         isFulfilled(login, register, forgotPassword, resetPassword, profile),
         (state, action) => {
-          console.log("🚀 ~ file: authSlice.jsx:173 ~ action:", action);
           if (action.payload?.user) {
             state.user = action.payload.user;
             state.isLoggedIn = true;

@@ -3,10 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   cartItems: JSON.parse(localStorage.getItem("cart")) || [],
 };
-console.log(
-  "🚀 ~ file: cartSlice.js:5 ~ cartItems:",
-  JSON.parse(localStorage.getItem("cart")) || []
-);
+
 export const cartSlice = createSlice({
   name: "cart",
   initialState,
@@ -67,7 +64,6 @@ export const cartSlice = createSlice({
   },
 });
 
-console.log("🚀 ~ file: cartSlice.js:10 ~ initialState:", initialState);
 export const { addToCart, updateCartQuantity, removeFromCart, clearCart } =
   cartSlice.actions;
 

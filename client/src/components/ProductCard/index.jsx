@@ -1,17 +1,17 @@
 import React from "react";
 import AutoPlaySlider from "../ImageSlider";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
 
-  const addCart = () => {
-    navigate("/addCart");
+  const handleReadMoreButtonClick = (id) => {
+    navigate(`/product/${id}`);
   };
 
   const images = product?.images?.map((image) => (
     <div key={image.public_id}>
-      <img src={image.url} alt="" />
+      <img className="rounded-t-lg" src={image.url} alt="" />
     </div>
   ));
 
@@ -30,39 +30,57 @@ export default function ProductCard({ product }) {
       </svg>
     );
   }
+
   return (
-    <div className="relative p-4 w-full bg-white overflow-hidden shadow hover:shadow-md rounded-lg">
-      <Link to={`/product/${product?._id}`}>
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white shadow-md rounded-lg max-w-sm dark:bg-gray-800 dark:border-gray-700">
-            <AutoPlaySlider images={images} />
-            <div className="px-5 pb-5 overflow-hidden break-words">
-              {/* product name */}
-              <h3 className="text-gray-900 font-semibold text-xl tracking-tight dark:text-white">
-                {product.name}
-              </h3>
-              {/* product rating */}
-              <div className="flex items-center mt-2.5 mb-5">
-                {ratingStars}
-                <span className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">
-                  {product?.rating === 0 ? "No rate" : product.rating}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                  ${product.price}
-                </span>
-                <button
-                  onClick={addCart}
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                >
-                  Add Cart
-                </button>
-              </div>
-            </div>
+    <div className="bg-white shadow-md rounded-lg max-w-sm dark:bg-gray-800 dark:border-gray-700 h-fit">
+      <AutoPlaySlider images={images} />
+
+      <div className="px-5 pb-5 overflow-hidden break-words">
+        {/* product name */}
+        <h3 className="text-gray-900 font-semibold text-xl tracking-tight dark:text-white">
+          {product.name}
+        </h3>
+        {/* product rating */}
+
+        <div className="flex items-center justify-between mt-2.5 mb-5">
+          <div className="flex items-center mt-2.5 mb-5">
+            {ratingStars}
+            <span className="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">
+              {product?.rating === 0 ? "No rate" : product.rating}
+            </span>
+          </div>
+          <div className="flex items-center mt-2.5 mb-5">
+            <span className="font-serif italic text-green-800 text-lg font-semibold mr-2 px-2.5 py-0.5 rounded  dark:text-green-800 ml-3">
+              {product?.category}
+            </span>
           </div>
         </div>
-      </Link>
+        <div className="flex items-center justify-between">
+          <span className="text-3xl font-bold text-gray-900 dark:text-white">
+            ${product.price}
+          </span>
+          {/* detail link button */}
+          <button
+            role="link"
+            onClick={() => handleReadMoreButtonClick(product._id)}
+            className=" focus:ring-4 text-center   dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800 transition ease-in duration-300 inline-flex items-center text-sm font-medium mb-2 md:mb-0 bg-purple-500 px-5 py-2 hover:shadow-lg tracking-wider text-white rounded-full hover:bg-purple-600"
+          >
+            Read more
+            <svg
+              className="-mr-1 ml-2 h-4 w-4"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

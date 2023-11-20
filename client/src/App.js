@@ -1,5 +1,5 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
-import Home from "./pages/Home";
+import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import NoMatch from "./pages/NoMatch";
 import Header from "./layout/Header";
 import Footer from "./layout/Footer";
@@ -9,30 +9,59 @@ import ProductDetail from "./pages/ProductDetail";
 import Products from "./pages/Products";
 import Auth from "./pages/auth";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
-import {
-  profile,
-  selectCurrentUser,
-  selectIsLoggedIn,
-} from "./redux/slices/authSlice";
+import { useEffect, useState } from "react";
+import { profile, selectCurrentUser } from "./redux/slices/authSlice";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import Cart from "./pages/Cart";
 import { store } from "./redux/store";
-import Admin from "./pages/Admin";
+import { getAdminProducts, getProducts } from "./redux/slices/productSlice";
+import Admin from "./pages/admin";
+import Home from "./pages/Home";
 export default function App() {
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
-  const isLoggedIn = useSelector(selectIsLoggedIn);
-  console.log("🚀 ~ file: App.js:28 ~ App ~ isLoggedIn:", isLoggedIn);
-  console.log("🚀 ~ file: App.js:27 ~ App ~ user:", user);
+
+  const [isConnected, setIsConnected] = useState(true);
+  const checkConnection = () => {
+    fetch("http://localhost:5000/products")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Connection failed");
+        }
+        setIsConnected(true);
+      })
+      .catch(() => {
+        setIsConnected(false);
+      });
+  };
 
   useEffect(() => {
+    checkConnection();
+
+    const interval = setInterval(() => {
+      checkConnection();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    console.log(isConnected);
+    if (!isConnected) return;
     store.dispatch(profile());
-    console.log("first app dispatch profile calıştı");
-  }, [dispatch]);
+  }, [dispatch, isConnected]);
+
+  useEffect(() => {
+    if (!isConnected) return;
+    if (user?.role === "admin") {
+      store.dispatch(getAdminProducts());
+    } else {
+      store.dispatch(getProducts());
+    }
+  }, [user, isConnected]);
 
   return (
     <>
@@ -60,6 +89,7 @@ export default function App() {
         <Route path="*" element={<NoMatch />} />
       </Routes>
       <Footer />
+      <ToastContainer autoClose={1500} position="top-center" />
     </>
   );
 }

@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { getProductDetail } from "../redux/slices/productSlice";
 import ImageSlider from "../components/ImageSlider";
 import Button from "../components/Button";
 import { addToCart } from "../redux/slices/cartSlice";
+import { toast } from "react-toastify";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -14,6 +15,17 @@ export default function ProductDetail() {
   });
 
   const [quantity, setQuantity] = useState(1);
+  const [backgroundColor, setBackgroundColor] = useState("bg-cyan-400");
+  const prevQuantityRef = useRef();
+  useEffect(() => {
+    prevQuantityRef.current = quantity;
+
+    const timeoutId = setTimeout(() => {
+      setBackgroundColor("bg-cyan-400");
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [quantity]);
 
   useEffect(() => {
     if (id) {
@@ -51,11 +63,6 @@ export default function ProductDetail() {
     ));
   }, [images]);
 
-  const handleDecrease = () => {
-    if (quantity <= 1) return;
-    setQuantity(quantity - 1);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-4 w-full">
@@ -92,16 +99,30 @@ export default function ProductDetail() {
     return;
   }
 
+  const handleDecrease = () => {
+    if (quantity > 1) {
+      setQuantity(quantity - 1);
+      setBackgroundColor("bg-red-500");
+    }
+  };
+
+  const handleIncrease = () => {
+    setQuantity(quantity + 1);
+    setBackgroundColor("bg-green-700");
+  };
+
   const handleChange = (e) => {
     const inputValue = e.target.value;
     if (!isNaN(inputValue)) {
       setQuantity(parseInt(inputValue, 10));
+      setBackgroundColor("bg-gray-400");
     }
   };
 
-  const addCart = async (quantity) => {
-    if (quantity === undefined) return;
+  const handleAddCartButtonClick = async () => {
     try {
+      if (quantity === undefined) return;
+
       if (stock === 0) return;
 
       const data = {
@@ -110,11 +131,16 @@ export default function ProductDetail() {
       };
 
       const res = dispatch(addToCart(data));
-      console.log("🚀 ~ file: ProductDetail.jsx:102 ~ addCart ~ res:", res);
+      if (res.payload._id) {
+        toast.success("Product successfully added to cart");
+      } else {
+        toast.error("An error occurred while adding the product to cart");
+      }
     } catch (error) {
-      console.log(error);
+      toast.error("An error occurred while adding the product to cart");
     }
   };
+
   return (
     <div>
       <div className="md:flex items-start justify-center py-12 2xl:px-20 md:px-6 px-4">
@@ -122,9 +148,11 @@ export default function ProductDetail() {
           <ImageSlider
             images={heroImages}
             adaptiveHeigth={true}
-            vertical={true}
+            horizontal={true}
             verticalSwiping={true}
             swipeToSlide={true}
+            autoplay={true}
+            dots={true}
           />
         </div>
         <div className="md:hidden">
@@ -197,7 +225,7 @@ export default function ProductDetail() {
           {/* check availability in store  finish*/}
 
           <div>
-            <p className="xl:pr-48 text-base lg:leading-tight leading-normal text-gray-600 dark:text-gray-300 mt-7">
+            <p className="text-base lg:leading-tight leading-normal text-gray-600 dark:text-gray-300 mt-7">
               {description}
             </p>
           </div>
@@ -242,32 +270,31 @@ export default function ProductDetail() {
                   </div>
                 </button>
                 {/* count */}
-                <button
-                  className="cursor-pointer flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 rounded-full "
+                <div
+                  className="cursor-pointer flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-full "
                   aria-label="count"
                 >
-                  <div className="mx-auto flex gap-10 ">
-                    <div className="w-auto h-auto">
-                      <div className="flex-1 h-full">
-                        <div className="flex-1 h-full px-2  py-1 border  rounded  border-gray-400  focus-within:border-none bg-green-700 text-white dark:bg-white dark:text-gray-200">
-                          <input
-                            className="relative  text-xl text-center  h-6 inline-block bg-green-700 text-white  w-8"
-                            type="text"
-                            defaultValue={1}
-                            value={quantity}
-                            onChange={handleChange}
-                          />
-                        </div>
+                  <div className="w-auto h-auto">
+                    <div className="flex-1 h-full">
+                      <div
+                        className={`${backgroundColor} flex-1 h-full px-2  py-1 border  rounded  border-gray-400  focus-within:border-none bg-green-700 text-white dark:bg-white dark:text-gray-200`}
+                      >
+                        <input
+                          className={`relative  text-xl text-center  h-6 inline-block ${backgroundColor} text-white  w-8`}
+                          type="text"
+                          value={quantity}
+                          onChange={handleChange}
+                        />
                       </div>
                     </div>
                   </div>
-                </button>
+                </div>
 
                 {/* increase button */}
                 <button
                   className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2  focus:ring-green-400 rounded-full"
                   aria-label="increase"
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={handleIncrease}
                 >
                   <div className="mx-auto flex gap-10">
                     <div className="w-auto h-auto">
@@ -303,8 +330,8 @@ export default function ProductDetail() {
                   stock > 0
                     ? " bg-primary-600 hover:bg-primary-700 "
                     : "bg-red-600 hover:bg-red-700"
-                } w-full text-white  focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800`}
-                onClick={() => addCart(quantity)}
+                } w-full text-white  focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800  transition ease-in duration-300`}
+                onClick={() => handleAddCartButtonClick()}
                 disabled={stock === 0}
               />
             </div>

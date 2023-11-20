@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { removeFromCart, updateCartQuantity } from "../redux/slices/cartSlice";
+import { Link } from "react-router-dom";
 
 export default function CartItem({ product }) {
   const dispatch = useDispatch();
@@ -38,11 +39,13 @@ export default function CartItem({ product }) {
         {" "}
         {/* product */}
         <div className="w-20">
-          <img
-            className="img-fluid"
-            src={images && images[0]?.url}
-            alt={name}
-          />
+          <Link to={`/product/${id}`}>
+            <img
+              className="img-fluid"
+              src={images && images[0]?.url}
+              alt={name}
+            />
+          </Link>
         </div>
         <div className="flex flex-col justify-between ml-4 flex-grow">
           <span className="font-bold text-sm">{name}</span>
@@ -71,7 +74,7 @@ export default function CartItem({ product }) {
         <input
           className="mx-2 border text-center w-8"
           type="text"
-          defaultValue={1}
+          defaultValue={"1"}
           value={quantity}
           onChange={(e) => setQuantity(parseInt(e.target.value))}
         />

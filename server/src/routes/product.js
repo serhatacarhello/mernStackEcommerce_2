@@ -15,12 +15,14 @@ const router = express.Router();
 
 router.get("/products", allProducts);
 
-router.delete(
+// get admin products
+router.get(
   "/admin/products",
   auth.authenticationMid,
   auth.roleChecked("admin"),
   adminProducts
 );
+
 router.get("/products/:id", detailProduct);
 
 router.post(

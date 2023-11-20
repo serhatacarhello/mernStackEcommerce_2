@@ -28,7 +28,7 @@ app.use("/", userRoutes);
 
 app.get("/products", (req, res) => {
   res.status(200).json({
-    message: "rota belirlendi",
+    message: "roots created",
   });
 });
 

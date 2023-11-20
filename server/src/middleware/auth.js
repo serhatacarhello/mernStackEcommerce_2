@@ -4,37 +4,31 @@ import jwt from "jsonwebtoken";
 const authenticationMid = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
-    console.log("🚀 ~ file: auth.js:7 ~ authenticationMid ~ token:", token);
 
     if (!token) {
-      return res.status(401).json({ message: `Erişim için giriş yapınız` });
+      return res.status(401).json({ message: `Please log in for access` });
     }
 
-    const decodedData = jwt.verify(token, "JWT_SECRET");
-    console.log(
-      "🚀 ~ file: auth.js:14 ~ authenticationMid ~ decodedData:",
-      decodedData
-    );
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+
     const user = await User.findById(decodedData.id);
-    console.log("🚀 ~ file: auth.js:19 ~ authenticationMid ~ user:", user);
     req.user = user;
     next(); // Başarılı kimlik doğrulama durumunda next() çağrısı yapılıyor.
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Oturumunuzun süresi doldu" });
+      return res.status(401).json({ message: "Your session has expired" });
     } else {
-      return res.status(403).json({ message: "Geçersiz token" });
+      return res.status(403).json({ message: "Invalid token" });
     }
   }
 };
-
 
 const roleChecked = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res
         .status(403)
-        .json({ message: "Erişim yetkiniz bulunmamaktadır." });
+        .json({ message: "You do not have the required access privileges." });
     }
     next();
   };

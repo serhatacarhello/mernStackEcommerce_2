@@ -18,9 +18,8 @@ const allProducts = async (req, res) => {
       .filter()
       .pagination(resultPerPage);
 
-    const products = await productFilter.query;
-
     // const products = await Product.find();
+    const products = await productFilter.query;
 
     res.status(200).json(products);
   } catch (error) {
@@ -31,7 +30,6 @@ const allProducts = async (req, res) => {
 const adminProducts = async (req, res, next) => {
   try {
     const products = await Product.find();
-
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -54,10 +52,16 @@ const createProduct = async (req, res, next) => {
     // create image url with cloudinary
     let images = [];
 
-    if (typeof req.body.images === "string") {
-      images.push(req.body.images);
-    } else {
-      images = req.body.images;
+    if (req.body.images) {
+      if (typeof req.body.images === "string") {
+        images.push(req.body.images);
+      } else if (Array.isArray(req.body.images)) {
+        images = req.body.images;
+      } else {
+        return res
+          .status(400)
+          .json({ message: "Images must be a string or an array" });
+      }
     }
 
     let allImage = [];
@@ -70,8 +74,8 @@ const createProduct = async (req, res, next) => {
     }
     // put images from cloudinary
     req.body.images = allImage;
-
     const newProduct = await Product.create(req.body);
+
     res.status(201).json(newProduct);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -80,7 +84,7 @@ const createProduct = async (req, res, next) => {
 
 // to create fake products
 
-const fakeProducts = generateFakeProducts(10);
+const fakeProducts = generateFakeProducts(20);
 
 //before creating fakeProducts comment user in Product model in models/product.js
 
@@ -97,9 +101,9 @@ const deleteProduct = async (req, res, next) => {
       await cloudinary.uploader.destroy(product.images[i].public_id);
     }
 
-    await product.remove();
+    await product.deleteOne({ _id: id });
 
-    res.status(200).json({ message: "Urun başarıyla silindi." });
+    res.status(200).json({ message: "Product successfully deleted." });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -108,64 +112,116 @@ const deleteProduct = async (req, res, next) => {
 // syntax
 //const doc = await Character.findOneAndUpdate(filter, update, {  new: true});
 // As an alternative to the new option, you can also use the returnOriginal option. returnOriginal: false is equivalent to new: true. The returnOriginal option exists for consistency with the the MongoDB Node.js driver's findOneAndUpdate(), which has the same option.
+
 const updateProduct = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const product = await Product.findById(id);
+    const productId = req.params.id.toString();
 
-    let images = [];
-
-    if (typeof req.body.images === "string") {
-      images.push(req.body.images);
-    } else {
-      images = req.body.images;
+    // Check if the provided ID is valid
+    if (!productId) {
+      return res.status(400).json({ error: "Invalid id format" });
     }
 
-    // if user sends image in req.body delete them from cloudinary
-    if (images !== undefined) {
-      for (let i = 0; i < product.images.length; i++) {
-        await cloudinary.uploader.destroy(product.images[i].public_id);
+    // Find the product by ID
+    const product = await Product.findById(productId);
+
+    // Initialize the images array
+    let images = [];
+
+    // Check if the request body contains images
+    if (req.body.images) {
+      // If images are provided as a string, add it to the array
+      if (typeof req.body.images === "string") {
+        images.push(req.body.images);
+        // If images have not changed, they will come as an object
+      } else if (typeof req.body.images[0] === "object") {
+        images = [];
+      } else {
+        // Otherwise, assign the images from the request body
+        images = req.body.images;
       }
     }
 
-    let allImage = [];
+    // Array to hold uploaded images
+    let uploadedImages = [];
 
-    for (let i = 0; i < images.length; i++) {
-      const result = await cloudinary.uploader.upload(images[i], {
-        folder: "products",
-      });
+    // Start of the function
+    async function uploadMyNewImages(images, product) {
+      // Check if there are images to process
+      if (images.length > 0) {
+        // Delete existing images associated with the product
+        for (let i = 0; i < product.images.length; i++) {
+          await cloudinary.uploader.destroy(product.images[i].public_id);
+        }
 
-      allImage.push({
-        public_id: result.public_id,
-        url: result.secure_url,
-      });
+        // Loop through the images sent in the request
+        for (let i = 0; i < images.length; i++) {
+          try {
+            // Upload the image to Cloudinary
+            const result = await cloudinary.uploader.upload(images[i], {
+              folder: "products",
+            });
+
+            // Add the uploaded image to the array
+            uploadedImages.push({
+              public_id: result.public_id,
+              url: result.secure_url,
+            });
+          } catch (error) {
+            throw error;
+          }
+        }
+        // Assign the uploadedImages outside the uploadMyNewImages function
+      }
+      return uploadedImages;
     }
 
-    //we changed the images in req.body
-    req.body.images = allImage;
-    req.body.user = req.user.id;
+    // Call the function
+    try {
+      // Call the uploadMyNewImages function to process and upload images
+      uploadedImages = await uploadMyNewImages(images, product);
 
-    const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+      // If the uploadedImages array is defined outside, update the request body
+      if (uploadedImages.length > 0) {
+        req.body.images = uploadedImages; // Update the images with the uploaded ones
+      }
+    } catch (error) {
+      throw error;
+    }
+
+    // Update the product in the database
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $set: req.body },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    // Respond with the updated product
     res.status(200).json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    // Handle internal server error
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const createReview = async (req, res, next) => {
-  const { productId, comment, rating } = req.body;
+  const { productId, comment, rating, user } = req.body;
 
   const review = {
-    user: req.user._id,
-    name: req.user.name,
+    user: user._id,
+    name: user.name,
     comment,
     rating: Number(rating),
   };
 
   const product = await Product.findById(productId);
+  if (!product) {
+    // If the product is not found, return a 404 response
+    return res.status(404).json({ message: "Product not found" });
+  }
   product.reviews.push(review);
 
   let average = 0;
@@ -178,7 +234,7 @@ const createReview = async (req, res, next) => {
   await product.save({ validateBeforeSave: false });
 
   res.status(200).json({
-    message: "Yorumun başarıyla eklendi.",
+    message: "Review added successfully.",
   });
 };
 

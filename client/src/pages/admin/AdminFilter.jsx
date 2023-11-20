@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import Select from "react-select";
 
-export default function Filter(props) {
+export default function AdminFilter(props) {
   const {
     price,
     setPrice,
@@ -93,48 +93,60 @@ export default function Filter(props) {
   ];
 
   return (
-    <div className="sm:w-[200px] lg:w-[350px] w-full  ps-1 pt-2 px-4  ">
+    <div className="w-full  ps-1 pt-2 px-4  ">
       <div className="flex items-center justify-between my-2">
         <div className="">Filter</div>
         <button
           onClick={clearFilters}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          className="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-1 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
         >
-          <span className="sm:block hidden">X</span>{" "}
-          <span className="sm:hidden">Clear Filters</span>
+          <span className="sm:hidden block">X</span>{" "}
+          <span className="sm:block hidden">Clear Filters</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-3 sm:flex-col flex-row">
-        <div className="flex items-center justify-center gap-3">
-          <input
-            className="border w-16 p-1 outline-none   shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block rounded-md sm:text-sm focus:ring-1"
-            type="number"
-            step={10}
-            min={0}
-            max={1000}
-            name="min"
-            value={price.min}
-            id="min"
-            placeholder="Min"
-            onChange={(e) =>
-              setPrice((prev) => ({ ...prev, min: e.target.value }))
-            }
-          />
-          <input
-            className="border w-16 p-1 outline-none   shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block rounded-md sm:text-sm focus:ring-1"
-            type="number"
-            step={100}
-            min={100}
-            max={10000}
-            name="max"
-            value={price.max}
-            id="max"
-            placeholder="Max"
-            onChange={(e) =>
-              setPrice((prev) => ({ ...prev, max: e.target.value }))
-            }
-          />
+      <div className="flex items-center gap-3 sm:flex-row flex-col">
+        <div className="flex items-center justify-center gap-3  flex-row   w-full">
+          <label htmlFor="price" className=" mr-auto">
+            {" "}
+            Price
+          </label>
+          <div className="flex items-center justify-center gap-3">
+            <label htmlFor="min" className=" block">
+              Min
+            </label>
+            <input
+              className="border w-16 p-1 outline-none   shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block rounded-md sm:text-sm focus:ring-1"
+              type="number"
+              step={10}
+              min={0}
+              max={1000}
+              name="min"
+              value={price.min}
+              id="min"
+              placeholder="Min"
+              onChange={(e) =>
+                setPrice((prev) => ({ ...prev, min: e.target.value }))
+              }
+            />
+            <label htmlFor="max" className=" block">
+              Max
+            </label>
+            <input
+              className="border w-16 p-1 outline-none   shadow-sm border-slate-300 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-sky-500 block rounded-md sm:text-sm focus:ring-1"
+              type="number"
+              step={100}
+              min={100}
+              max={10000}
+              name="max"
+              value={price.max}
+              id="max"
+              placeholder="Max"
+              onChange={(e) =>
+                setPrice((prev) => ({ ...prev, max: e.target.value }))
+              }
+            />
+          </div>
         </div>
         <div className="w-full">
           <Select
