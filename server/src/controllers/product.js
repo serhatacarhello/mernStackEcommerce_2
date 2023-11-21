@@ -20,6 +20,7 @@ const allProducts = async (req, res) => {
 
     // const products = await Product.find();
     const products = await productFilter.query;
+    products.forEach((p) => Number(p.price));
 
     res.status(200).json(products);
   } catch (error) {
@@ -30,6 +31,7 @@ const allProducts = async (req, res) => {
 const adminProducts = async (req, res, next) => {
   try {
     const products = await Product.find();
+    products.forEach((p) => Number(p.price));
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -75,6 +77,10 @@ const createProduct = async (req, res, next) => {
     // put images from cloudinary
     req.body.images = allImage;
     const newProduct = await Product.create(req.body);
+    console.log(
+      "🚀 ~ file: product.js:81 ~ createProduct ~ newProduct:",
+      newProduct
+    );
 
     res.status(201).json(newProduct);
   } catch (error) {
@@ -124,7 +130,7 @@ const updateProduct = async (req, res, next) => {
 
     // Find the product by ID
     const product = await Product.findById(productId);
-
+    req.body.price = Number(req.body.price);
     // Initialize the images array
     let images = [];
 

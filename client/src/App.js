@@ -39,8 +39,8 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (isConnected) return;
     checkConnection();
-
     const interval = setInterval(() => {
       checkConnection();
     }, 5000);
@@ -49,7 +49,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    console.log(isConnected);
+    console.log("🚀 ~ file: App.js:54 ~ useEffect ~ isConnected:", isConnected);
     if (!isConnected) return;
     store.dispatch(profile());
   }, [dispatch, isConnected]);

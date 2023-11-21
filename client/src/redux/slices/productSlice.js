@@ -1,19 +1,24 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
+// Get the base API URL from the environment variable
+const API_BASE_URL = process.env.REACT_APP_API_URL 
+
 export const getProducts = createAsyncThunk(
   "product/fetchProducts",
   async (params) => {
-    let link = `http://localhost:5000/products`;
+    let link = `${API_BASE_URL}/products`;
     if (params) {
       const { keyword, limit, page } = params;
-      link = `http://localhost:5000/products?keyword=${keyword || ""}&limit=${
+      link = `${API_BASE_URL}/products?keyword=${keyword || ""}&limit=${
         limit || 12
       }&page=${page || 1}`;
     }
 
     const response = await fetch(link);
+    console.log("🚀 ~ file: productSlice.js:20 ~ link:", link);
     const data = await response.json();
+    console.log("🚀 ~ file: productSlice.js:21 ~ data:", data);
     return data;
   }
 );
@@ -21,14 +26,14 @@ export const getFilteredProducts = createAsyncThunk(
   "product/fetchFilteredProducts",
   async (params) => {
     console.log("🚀 ~ file: productSlice.js:23 ~ arams:", params);
-    let link = `http://localhost:5000/products`;
+    let link = `${API_BASE_URL}/products`;
     if (params) {
       const { keyword, price, rating, category, limit, page } = params;
-      link = `http://localhost:5000/products?keyword=${
-        keyword || ""
-      }&rating[gte]=${rating || 0}&price[gte]=${price?.min || 0}&price[lte]=${
-        price?.max || 1000
-      }&limit=${limit || 12}&page=${page || 1}`;
+      link = `${API_BASE_URL}/products?keyword=${keyword || ""}&rating[gte]=${
+        rating || 0
+      }&price[gte]=${price?.min || 0}&price[lte]=${price?.max || 1000}&limit=${
+        limit || 12
+      }&page=${page || 1}`;
 
       if (category) {
         link += `&category=${category}`;
@@ -37,7 +42,7 @@ export const getFilteredProducts = createAsyncThunk(
 
     const response = await fetch(link);
     const data = await response.json();
-    console.log("🚀 ~ file: productSlice.js:40 ~  data :", data);
+    console.log("🚀 ~ file: productSlice.js:45 ~ data:", data);
     return data;
   }
 );
@@ -47,13 +52,14 @@ export const getAdminProducts = createAsyncThunk(
   async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    const response = await fetch(`http://localhost:5000/admin/products`, {
+    const response = await fetch(`${API_BASE_URL}/admin/products`, {
       headers: {
         authorization: `Bearer ${token}`,
       },
     });
 
     const data = await response.json();
+    console.log("🚀 ~ file: productSlice.js:62 ~ data:", data);
     return data;
   }
 );
@@ -71,13 +77,10 @@ export const addNewAdminProduct = createAsyncThunk(
       },
       body: JSON.stringify(newProductData),
     };
-    const response = await fetch(
-      `http://localhost:5000/product/new`,
-      requestOptions
-    );
+    const response = await fetch(`${API_BASE_URL}/product/new`, requestOptions);
 
     const data = await response.json();
-    console.log("🚀 ~ file: productSlice.js:76 ~ data:", data);
+    console.log("🚀 ~ file: productSlice.js:86 ~ data:", data);
     return data;
   }
 );
@@ -96,11 +99,12 @@ export const updateProduct = createAsyncThunk(
       body: JSON.stringify(updatedProductData),
     };
     const response = await fetch(
-      `http://localhost:5000/products/${id}`,
+      `${API_BASE_URL}/products/${id}`,
       requestOptions
     );
 
     const data = await response.json();
+    console.log("🚀 ~ file: productSlice.js:110 ~ data:", data);
     return data;
   }
 );
@@ -109,7 +113,7 @@ export const getProductDetail = createAsyncThunk(
   "product/fetchProductDetail",
   // Declare the type your function argument here:
   async (id) => {
-    const response = await fetch(`http://localhost:5000/products/${id}`);
+    const response = await fetch(`${API_BASE_URL}/products/${id}`);
     return await response.json();
   }
 );
@@ -126,7 +130,7 @@ export const deleteProduct = createAsyncThunk(
       },
     };
     const response = await fetch(
-      `http://localhost:5000/products/${id}`,
+      `${API_BASE_URL}/products/${id}`,
       requestOptions
     );
     return await response.json();
