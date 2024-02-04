@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 
 // Get the base API URL from the environment variable
-const API_BASE_URL = process.env.REACT_APP_API_URL 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 export const getProducts = createAsyncThunk(
   "product/fetchProducts",
@@ -16,16 +16,13 @@ export const getProducts = createAsyncThunk(
     }
 
     const response = await fetch(link);
-    console.log("🚀 ~ file: productSlice.js:20 ~ link:", link);
     const data = await response.json();
-    console.log("🚀 ~ file: productSlice.js:21 ~ data:", data);
     return data;
   }
 );
 export const getFilteredProducts = createAsyncThunk(
   "product/fetchFilteredProducts",
   async (params) => {
-    console.log("🚀 ~ file: productSlice.js:23 ~ arams:", params);
     let link = `${API_BASE_URL}/products`;
     if (params) {
       const { keyword, price, rating, category, limit, page } = params;
@@ -42,7 +39,6 @@ export const getFilteredProducts = createAsyncThunk(
 
     const response = await fetch(link);
     const data = await response.json();
-    console.log("🚀 ~ file: productSlice.js:45 ~ data:", data);
     return data;
   }
 );
@@ -273,7 +269,7 @@ export const productSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const {} = productSlice.actions;
+// export const {} = productSlice.actions;
 
 export default productSlice.reducer;
 

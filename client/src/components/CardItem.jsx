@@ -27,11 +27,20 @@ export default function CartItem({ product }) {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      handleUpdateQuantity(id, quantity);
+      if (quantity !== 0) {
+        handleUpdateQuantity(id, quantity);
+      } else handleRemove(id);
     }, 1000);
 
     return () => clearTimeout(timeout);
   }, [quantity]);
+
+  const decrease = () => {
+    if (quantity > 0) setQuantity((prev) => --prev);
+  };
+  const increase = () => {
+    setQuantity((prev) => ++prev);
+  };
 
   return (
     <article className="flex items-center hover:bg-gray-100 -mx-8 px-6 py-5">
@@ -61,25 +70,21 @@ export default function CartItem({ product }) {
       </div>
       <div className="flex justify-center w-1/5">
         <svg
-          onClick={() => {
-            if (quantity > 0) {
-              setQuantity((prev) => prev - 1);
-            }
-          }}
+          onClick={decrease}
           className="fill-current text-gray-600 w-3"
           viewBox="0 0 448 512"
         >
           <path d="M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z" />
         </svg>
         <input
-          className="mx-2 border text-center w-8"
+          className="mx-2 border text-center w-8  rounded-sm"
           type="text"
-          defaultValue={"1"}
+          readOnly
           value={quantity}
           onChange={(e) => setQuantity(parseInt(e.target.value))}
         />
         <svg
-          onClick={() => setQuantity((prev) => prev + 1)}
+          onClick={increase}
           className="fill-current text-gray-600 w-3"
           viewBox="0 0 448 512"
         >

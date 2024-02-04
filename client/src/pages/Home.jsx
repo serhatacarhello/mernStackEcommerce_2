@@ -40,7 +40,7 @@ export default function Home() {
           No items available
         </p>
       )}
-      <div className="flex items-center justify-center w-full ">
+      <div className="flex items-center justify-center w-full">
         <img className="img-fluid" src={banner_img} alt="discount banner" />
       </div>
 

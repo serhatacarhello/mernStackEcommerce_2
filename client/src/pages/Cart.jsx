@@ -13,12 +13,13 @@ function Cart() {
   const cartItems = useSelector(selectCart);
 
   const products = cartItems?.map((item) => (
-    <CartItem key={item._id} product={item} />
+    <CartItem key={item.id} product={item} />
   ));
   const totalPrice = cartItems.reduce((acc, item) => {
     return acc + item.price * item.quantity;
   }, 0);
-  const totalCost = totalPrice + parseInt(selectedOption);
+  const totalCost =
+    cartItems.length === 0 ? 0 : totalPrice + parseInt(selectedOption);
 
   return (
     <>
@@ -110,9 +111,15 @@ function Cart() {
                 value={selectedOption}
                 onChange={handleOptionChange}
               >
-                <option value="10">Standard shipping - $10.00</option>
-                <option value="20">Express shipping - $20.00</option>
-                <option value="0">Free shipping - $0.00</option>
+                <option className="text-justify text-wrap" value="10">
+                  Standard shipping - $10.00
+                </option>
+                <option className="text-justify text-wrap" value="20">
+                  Express shipping - $20.00
+                </option>
+                <option className="text-justify text-wrap" value="0">
+                  Free shipping - $0.00
+                </option>
               </select>
             </div>
             <div className="py-10">

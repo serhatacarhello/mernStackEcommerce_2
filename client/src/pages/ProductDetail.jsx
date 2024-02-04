@@ -274,13 +274,13 @@ export default function ProductDetail() {
                   className="cursor-pointer flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2  rounded-full "
                   aria-label="count"
                 >
-                  <div className="w-auto h-auto">
-                    <div className="flex-1 h-full">
+                  <div className="w-auto h-auto pointer-events-none focus:pointer-events-none">
+                    <div className="flex-1 h-full pointer-events-none focus:pointer-events-none">
                       <div
-                        className={`${backgroundColor} flex-1 h-full px-2  py-1 border  rounded  border-gray-400  focus-within:border-none bg-green-700 text-white dark:bg-white dark:text-gray-200`}
+                        className={`${backgroundColor} flex-1 h-full px-2  py-1 border  rounded  border-gray-400  focus-within:border-none  text-white dark:bg-white dark:text-gray-200  pointer-events-none  focus:pointer-events-none`}
                       >
                         <input
-                          className={`relative  text-xl text-center  h-6 inline-block ${backgroundColor} text-white  w-8`}
+                          className={`relative  text-xl text-center  h-6 inline-block ${backgroundColor} text-white  w-8 pointer-events-none focus:pointer-events-none `}
                           type="text"
                           value={quantity}
                           onChange={handleChange}

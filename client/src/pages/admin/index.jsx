@@ -58,7 +58,7 @@ export default function Admin() {
         setShowFilteredProducts(false);
       };
     };
-  }, [dispatch, keyword, price, category, rating]);
+  }, [dispatch, keyword, price, category, rating, adminProducts?.length]);
 
   // pagination
   const [itemOffset, setItemOffset] = useState(0);

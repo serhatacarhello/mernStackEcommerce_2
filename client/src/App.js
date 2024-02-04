@@ -20,13 +20,17 @@ import { store } from "./redux/store";
 import { getAdminProducts, getProducts } from "./redux/slices/productSlice";
 import Admin from "./pages/admin";
 import Home from "./pages/Home";
+
 export default function App() {
+  const API_BASE_URL = process.env.REACT_APP_API_URL;
+  let link = `${API_BASE_URL}/products`;
   const dispatch = useDispatch();
   const user = useSelector(selectCurrentUser);
 
   const [isConnected, setIsConnected] = useState(true);
+
   const checkConnection = () => {
-    fetch("http://localhost:5000/products")
+    fetch(link)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Connection failed");
