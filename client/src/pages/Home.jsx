@@ -36,9 +36,12 @@ export default function Home() {
         <div className="flex text-center my-2 p-2  bg-red-200">{errorText}</div>
       )}
       {products.length === 0 && (
-        <p className="text-center my-2 p-2  bg-red-200  w-full col-span-12">
-          No items available
-        </p>
+        <div className="min-h-screen">
+          <p className="text-center my-2 p-2  bg-red-200  w-full col-span-12">
+            No items available or server problem wait a minute please...
+          </p>
+          <Loading />
+        </div>
       )}
       <div className="flex items-center justify-center w-full">
         <img className="img-fluid" src={banner_img} alt="discount banner" />
